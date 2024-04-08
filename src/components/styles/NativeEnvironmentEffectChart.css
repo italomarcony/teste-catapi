@@ -1,0 +1,21 @@
+.native-environment-chart-container {
+  width: 900px;
+  height: 1600px;
+  background-color: #f0f0f0;
+  margin: 50px auto; /* Define margens automáticas verticais e horizontais */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.native-environment-chart-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px; /* Adiciona espaço abaixo do título */
+}
+
+.native-environment-chart-list {
+  font-size: 14px;
+  text-align: center; /* Alinha o texto ao centro */
+}

@@ -1,0 +1,19 @@
+.energy-chart-container {
+  width: 900px;
+  height: 820px;
+  background-color: #f0f0f0;
+  margin: 50px auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.energy-chart-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.chart-label {
+  font-size: 14px;
+}

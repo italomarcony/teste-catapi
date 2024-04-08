@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Chart from "chart.js/auto";
+import "./styles/PopularityAvailabilityChart.css";
 
+// Componente funcional PopularityAvailabilityChart para exibir gráficos de análise de popularidade e disponibilidade de raças de gatos
 function PopularityAvailabilityChart({ limit }) {
+  // State para armazenar os dados do gráfico e o objeto do gráfico
   const [catData, setCatData] = useState(null);
   const [myChart, setMyChart] = useState(null);
 
+  // Effect para definir os dados do gráfico ao montar o componente
   useEffect(() => {
     // Dados fornecidos
     const breedData = [
@@ -51,6 +55,7 @@ function PopularityAvailabilityChart({ limit }) {
     });
   }, [limit]);
 
+  // Effect para criar e atualizar o gráfico quando os dados mudam
   useEffect(() => {
     if (myChart) {
       myChart.destroy();
@@ -86,11 +91,11 @@ function PopularityAvailabilityChart({ limit }) {
             },
           },
           plugins: {
+            // Legendas e rótulos
             legend: {
               display: true,
               position: "top",
               labels: {
-                // Adicionando uma legenda para indicar o significado das barras
                 filter: function (item) {
                   return item.datasetIndex === 0;
                 },
@@ -114,17 +119,23 @@ function PopularityAvailabilityChart({ limit }) {
     }
   }, [catData]);
 
+  // Renderiza o componente PopularityAvailabilityChart
   return (
-    <div>
-      <h2>Análise de Popularidade e Disponibilidade</h2>
+    <div className="popularity-availability-chart-container">
+      <h2 className="popularity-availability-chart-title">
+        Análise de Popularidade e Disponibilidade
+      </h2>
+
+      {/* Canvas para renderizar o gráfico */}
       <canvas id="popularityAvailabilityChart"></canvas>
+
       {/* Mostrando informações sobre as raças */}
       {catData && catData.breedInfo && (
-        <div>
+        <div className="breed-info-container">
           <h3>Informações sobre as Raças:</h3>
           <ul>
             {catData.breedInfo.map((breed) => (
-              <li key={breed.name}>
+              <li key={breed.name} className="breed-info-item">
                 <strong>{breed.name}</strong>
                 <ul>
                   <li>Popularidade na Web: {breed.popularityWeb}</li>

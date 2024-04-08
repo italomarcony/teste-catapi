@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from "react";
 import CatBreed from "./CatBreed";
+import "./styles/CatBreedsList.css";
+
+// Componente funcional CatBreedsList que exibe uma lista de raças de gato.
 
 function CatBreedsList({ limit }) {
-  // Definir para armazenar as raças de gatos
+  // State para armazenar as raças de gato
   const [catBreeds, setCatBreeds] = useState([]);
 
+  // Usado para carregar as raças de gato da API ao montar o componente.
   useEffect(() => {
-    // Função para buscar os dados das raças de gatos da API
     fetch("https://api.thecatapi.com/v1/breeds")
-      .then((response) => response.json()) // Converte a resposta em formato JSON
-      .then((data) => setCatBreeds(data)) // Define os dados das raças no estado catBreeds
-      .catch((error) => console.error("Error fetching cat breeds:", error)); // Trata erros de requisição
-  }, []); // O segundo parâmetro [] indica que esse efeito ocorre apenas uma vez, após a montagem do componente
+      .then((response) => response.json())
+      .then((data) => setCatBreeds(data.slice(0, limit)))
+      .catch((error) => console.error("Error fetching cat breeds:", error));
+  }, [limit]);
 
+  // Retorna a lista de raças de gato
   return (
-    <div className="cat-breeds">
-      {catBreeds.slice(0, limit).map((breed) => (
+    <div className="cat-breeds-container">
+      {catBreeds.map((breed) => (
         <CatBreed key={breed.id} breed={breed} />
       ))}
     </div>

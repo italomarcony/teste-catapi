@@ -1,4 +1,5 @@
 import React from "react";
+import "./styles/CatBreed.css";
 
 // Componente que representa uma única raça de gato
 // Recebe os props contendo os dados de uma raça de gato específica

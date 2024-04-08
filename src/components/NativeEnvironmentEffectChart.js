@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Chart from "chart.js/auto";
+import "./styles/NativeEnvironmentEffectChart.css";
 
+// Componente funcional NativeEnvironmentEffectChart para exibir gráficos de influência do ambiente nativo no temperamento e necessidades
 function NativeEnvironmentEffectChart() {
+  // State para armazenar os dados do gráfico e o objeto do gráfico
   const [chartData, setChartData] = useState(null);
   const [myChart, setMyChart] = useState(null);
 
+  // Efeito para definir os dados do gráfico ao montar o componente
   useEffect(() => {
     // Dados das características das raças
     const abissinioData = {
@@ -36,8 +40,8 @@ function NativeEnvironmentEffectChart() {
     });
   }, []);
 
+  // Efeito para criar e atualizar o gráfico quando os dados mudam
   useEffect(() => {
-    // Atualização do gráfico quando os dados mudam
     if (myChart) {
       myChart.destroy();
     }
@@ -63,20 +67,11 @@ function NativeEnvironmentEffectChart() {
               display: true,
               position: "top",
             },
-          },
-          plugins: {
             title: {
-              display: true,
-              text: "Influência do Ambiente Nativo no Temperamento e Necessidades",
-              font: {
-                size: 18,
-              },
-            },
-            subtitle: {
               display: true,
               text: "Comparação entre Abissínio e Aegean",
               font: {
-                size: 14,
+                size: 18,
               },
             },
           },
@@ -86,34 +81,44 @@ function NativeEnvironmentEffectChart() {
     }
   }, [chartData]);
 
+  // Renderiza o componente NativeEnvironmentEffectChart
   return (
-    <div>
+    <div className="native-environment-chart-container">
+      <h2 className="chart-title">
+        Influência do Ambiente Nativo no Temperamento e Necessidades
+      </h2>
+
+      {/* Canvas para renderizar o gráfico */}
       <canvas id="nativeEnvironmentChart"></canvas>
+
+      {/* Lista de raças adaptadas a diferentes ambientes */}
       <div style={{ marginTop: "20px" }}>
-        <h2>Informações sobre Raças Adaptadas a Diferentes Ambientes:</h2>
+        <h2 className="native-environment-chart-title">
+          Informações sobre Raças Adaptadas a Diferentes Ambientes:
+        </h2>
         <h3>Climas Quentes:</h3>
-        <ul>
+        <ul className="native-environment-chart-list">
           <li>Abyssinian</li>
           <li>Siamês</li>
           <li>Oriental</li>
           <li>Singapura</li>
         </ul>
         <h3>Climas Frios:</h3>
-        <ul>
+        <ul className="native-environment-chart-list">
           <li>Maine Coon</li>
           <li>Norueguês da Floresta</li>
           <li>Persa</li>
           <li>Ragdoll</li>
         </ul>
         <h3>Ambientes Internos:</h3>
-        <ul>
+        <ul className="native-environment-chart-list">
           <li>Abyssinian</li>
           <li>Aegean</li>
           <li>Bengal</li>
           <li>Sphynx</li>
         </ul>
         <h3>Ambientes Externos:</h3>
-        <ul>
+        <ul className="native-environment-chart-list">
           <li>Maine Coon</li>
           <li>Norueguês da Floresta</li>
           <li>Siamês</li>

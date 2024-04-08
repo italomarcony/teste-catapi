@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
-import Chart from "chart.js/auto"; // Importar a classe Chart
+import Chart from "chart.js/auto";
+import "./styles/Graphics.css";
 
+// Componente funcional FamilySuitabilityChart para exibir gráficos de adequação familiar de raças de gatos
 function FamilySuitabilityChart({ limit }) {
+  // State para armazenar os dados das raças de gatos e o gráfico
   const [catData, setCatData] = useState(null);
   const [myChart, setMyChart] = useState(null);
 
+  // Efeito para carregar os dados das raças de gatos da API ao montar o componente ou quando o limite é alterado
   useEffect(() => {
-    // Realizar a solicitação à API
     fetch("https://api.thecatapi.com/v1/breeds")
       .then((response) => response.json())
       .then((data) => {
@@ -24,7 +27,7 @@ function FamilySuitabilityChart({ limit }) {
         const limitedChildFriendlyData = childFriendlyData.slice(0, limit);
         const limitedDogFriendlyData = dogFriendlyData.slice(0, limit);
 
-        // Atualizar o estado com os dados extraídos
+        // Atualizar o state com os dados extraídos
         setCatData({
           labels: limitedLabels,
           datasets: [
@@ -54,6 +57,7 @@ function FamilySuitabilityChart({ limit }) {
       .catch((error) => console.error("Erro ao obter dados da API:", error));
   }, [limit]);
 
+  // Efeito para criar e atualizar o gráfico quando os dados das raças de gatos são carregados ou alterados
   useEffect(() => {
     if (myChart) {
       myChart.destroy();
@@ -95,9 +99,11 @@ function FamilySuitabilityChart({ limit }) {
     }
   }, [catData]);
 
+  // Renderiza o componente FamilySuitabilityChart
   return (
-    <div>
-      <h2>Comparação de Adequação Familiar</h2>
+    <div className="chart-container">
+      <h2 className="chart-title">Comparação de Adequação Familiar</h2>
+      {/* Canvas para renderizar o gráfico */}
       <canvas id="myFamilyChart"></canvas>
     </div>
   );
