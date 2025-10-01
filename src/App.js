@@ -10,8 +10,10 @@ import QuizPage from "./pages/QuizPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
+  const basename = process.env.NODE_ENV === 'production' ? '/teste-catapi' : '';
+
   return (
-    <Router>
+    <Router basename={basename}>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
         <Header />
         <FloatingThemeToggle />
