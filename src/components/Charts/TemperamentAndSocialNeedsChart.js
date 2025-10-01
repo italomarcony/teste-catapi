@@ -1,53 +1,64 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
+import ChartContainer from '../UI/ChartContainer';
+import { useTheme } from '../../hooks/useTheme';
 
 function TemperamentAndSocialNeedsChart({ limit }) {
-  // State para armazenar os dados do gráfico e o objeto Chart
   const [catData, setCatData] = useState(null);
-  const [myChart, setMyChart] = useState(null);
+  const chartRef = useRef(null);
+  const canvasRef = useRef(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
-    // Realiza a solicitação à API para obter os dados das raças de gatos
     fetch("https://api.thecatapi.com/v1/breeds")
       .then((response) => response.json())
       .then((data) => {
-        // Extrai os dados relevantes da resposta da API
         const labels = data.map((breed) => breed.name);
         const activityData = data.map((breed) => breed.energy_level);
         const intelligenceData = data.map((breed) => breed.intelligence);
         const sociabilityData = data.map((breed) => breed.social_needs);
         const vocalizationData = data.map((breed) => breed.vocalisation);
 
-        // Limita o número de raças de acordo com o limite especificado
         const limitedLabels = labels.slice(0, limit);
         const limitedActivityData = activityData.slice(0, limit);
         const limitedIntelligenceData = intelligenceData.slice(0, limit);
         const limitedSociabilityData = sociabilityData.slice(0, limit);
         const limitedVocalizationData = vocalizationData.slice(0, limit);
 
-        // Atualiza o state com os dados extraídos
         setCatData({
           labels: limitedLabels,
           datasets: [
             {
               label: "Atividade",
               data: limitedActivityData,
-              backgroundColor: "rgba(255, 99, 132, 0.5)", // Cor de fundo para atividade
+              backgroundColor: "rgba(255, 99, 132, 0.6)",
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 2,
+              borderRadius: 8,
             },
             {
               label: "Inteligência",
               data: limitedIntelligenceData,
-              backgroundColor: "rgba(255, 206, 86, 0.5)", // Cor de fundo para inteligência
+              backgroundColor: "rgba(255, 206, 86, 0.6)",
+              borderColor: "rgba(255, 206, 86, 1)",
+              borderWidth: 2,
+              borderRadius: 8,
             },
             {
               label: "Sociabilidade",
               data: limitedSociabilityData,
-              backgroundColor: "rgba(75, 192, 192, 0.5)", // Cor de fundo para sociabilidade
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 2,
+              borderRadius: 8,
             },
             {
               label: "Nível de Vocalização",
               data: limitedVocalizationData,
-              backgroundColor: "rgba(255, 159, 64, 0.5)", // Cor de fundo para nível de vocalização
+              backgroundColor: "rgba(255, 159, 64, 0.6)",
+              borderColor: "rgba(255, 159, 64, 1)",
+              borderWidth: 2,
+              borderRadius: 8,
             },
           ],
         });
@@ -56,57 +67,98 @@ function TemperamentAndSocialNeedsChart({ limit }) {
   }, [limit]);
 
   useEffect(() => {
-    // Atualiza o gráfico quando os dados mudam
-    if (myChart) {
-      myChart.destroy(); // Destroi o gráfico anterior para evitar duplicatas
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
     }
-    if (catData) {
-      const ctx = document.getElementById("myChart"); // Obtém o contexto do canvas
+
+    if (catData && canvasRef.current) {
+      const isDark = theme === 'dark';
+      const ctx = canvasRef.current.getContext('2d');
       const newChart = new Chart(ctx, {
-        type: "bar", // Tipo de gráfico: barra
-        data: catData, // Dados do gráfico
+        type: "bar",
+        data: catData,
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
           scales: {
             y: {
               beginAtZero: true,
               ticks: {
                 stepSize: 1,
                 max: 5,
+                color: isDark ? '#d1d5db' : '#374151',
               },
               title: {
                 display: true,
                 text: "Nível",
+                color: isDark ? '#d1d5db' : '#374151',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                }
               },
+              grid: {
+                color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
+              }
             },
             x: {
+              ticks: {
+                color: isDark ? '#d1d5db' : '#374151',
+              },
               title: {
                 display: true,
                 text: "Raças de Gatos",
+                color: isDark ? '#d1d5db' : '#374151',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                }
               },
+              grid: {
+                display: false
+              }
             },
           },
           plugins: {
             legend: {
               display: true,
               position: "top",
+              labels: {
+                color: isDark ? '#d1d5db' : '#374151',
+              }
             },
+            tooltip: {
+              backgroundColor: isDark ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+              titleColor: isDark ? '#f3f4f6' : '#1f2937',
+              bodyColor: isDark ? '#d1d5db' : '#374151',
+              borderColor: isDark ? '#4b5563' : '#e5e7eb',
+              borderWidth: 1,
+            }
           },
         },
       });
-      setMyChart(newChart);
+      chartRef.current = newChart;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catData]);
+
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [catData, theme]);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">
-        Comparação de Temperamento e Necessidades Sociais
-      </h2>
-      <div className="mb-4">
-        <canvas id="myChart"></canvas>
+    <ChartContainer
+      title="Comparação de Temperamento e Necessidades Sociais"
+      icon="🧠"
+      footer="Análise de personalidade e características sociais"
+    >
+      <div style={{ height: '400px' }}>
+        <canvas ref={canvasRef}></canvas>
       </div>
-    </div>
+    </ChartContainer>
   );
 }
 

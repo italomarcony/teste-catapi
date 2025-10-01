@@ -1,51 +1,52 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
+import ChartContainer from '../UI/ChartContainer';
+import { useTheme } from '../../hooks/useTheme';
 
-// Componente funcional HealthAndWellnessChart para exibir gráficos de saúde e bem-estar de raças de gatos
 function HealthAndWellnessChart({ limit }) {
-  // Estado para armazenar os dados das raças de gatos e o gráfico
   const [catData, setCatData] = useState(null);
-  const [myChart, setMyChart] = useState(null);
+  const chartRef = useRef(null);
+  const canvasRef = useRef(null);
+  const { theme } = useTheme();
 
-  // Efeito para carregar os dados das raças de gatos da API ao montar o componente ou quando o limite é alterado
   useEffect(() => {
     fetch("https://api.thecatapi.com/v1/breeds")
       .then((response) => response.json())
       .then((data) => {
-        // Extrair os dados relevantes da resposta da API
         const labels = data.map((breed) => breed.name);
         const lifespanData = data.map((breed) => {
-          // Verificar se a expectativa de vida é um intervalo
           if (breed.life_span.includes("-")) {
             const [min, max] = breed.life_span.split("-").map(Number);
-            // Calcular o valor médio da faixa
             return (min + max) / 2;
           } else {
-            // Se não for um intervalo, converte direto para um número
             return Number(breed.life_span);
           }
         });
 
         const healthIssuesData = data.map((breed) => breed.health_issues);
 
-        // Limita o número de raças de acordo com o limite especificado
         const limitedLabels = labels.slice(0, limit);
         const limitedLifespanData = lifespanData.slice(0, limit);
         const limitedHealthIssuesData = healthIssuesData.slice(0, limit);
 
-        // Atualiza o state com os dados extraídos
         setCatData({
           labels: limitedLabels,
           datasets: [
             {
               label: "Expectativa de Vida (anos)",
               data: limitedLifespanData,
-              backgroundColor: "rgba(75, 192, 192, 0.5)",
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 2,
+              borderRadius: 8,
             },
             {
               label: "Problemas de Saúde",
               data: limitedHealthIssuesData,
-              backgroundColor: "rgba(255, 99, 132, 0.5)",
+              backgroundColor: "rgba(255, 99, 132, 0.6)",
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 2,
+              borderRadius: 8,
             },
           ],
         });
@@ -53,55 +54,97 @@ function HealthAndWellnessChart({ limit }) {
       .catch((error) => console.error("Erro ao obter dados da API:", error));
   }, [limit]);
 
-  // Efeito para criar e atualizar o gráfico quando os dados das raças de gatos são carregados ou alterados
   useEffect(() => {
-    if (myChart) {
-      myChart.destroy();
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
     }
-    if (catData) {
-      const ctx = document.getElementById("myHealthChart");
+
+    if (catData && canvasRef.current) {
+      const isDark = theme === 'dark';
+      const ctx = canvasRef.current.getContext('2d');
       const newChart = new Chart(ctx, {
         type: "bar",
         data: catData,
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
           scales: {
             y: {
               beginAtZero: true,
+              ticks: {
+                color: isDark ? '#d1d5db' : '#374151',
+              },
               title: {
                 display: true,
                 text: "Valores",
+                color: isDark ? '#d1d5db' : '#374151',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                }
               },
+              grid: {
+                color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
+              }
             },
             x: {
+              ticks: {
+                color: isDark ? '#d1d5db' : '#374151',
+              },
               title: {
                 display: true,
                 text: "Raças de Gatos",
+                color: isDark ? '#d1d5db' : '#374151',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                }
               },
+              grid: {
+                display: false
+              }
             },
           },
           plugins: {
             legend: {
               display: true,
               position: "top",
+              labels: {
+                color: isDark ? '#d1d5db' : '#374151',
+              }
             },
+            tooltip: {
+              backgroundColor: isDark ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+              titleColor: isDark ? '#f3f4f6' : '#1f2937',
+              bodyColor: isDark ? '#d1d5db' : '#374151',
+              borderColor: isDark ? '#4b5563' : '#e5e7eb',
+              borderWidth: 1,
+            }
           },
         },
       });
-      setMyChart(newChart);
+      chartRef.current = newChart;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catData]);
 
-  // Renderiza o componente HealthAndWellnessChart
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [catData, theme]);
+
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Análise de Saúde e Bem-Estar</h2>
-
-      {/* Canvas para renderizar o gráfico */}
-      <div className="mb-4">
-        <canvas id="myHealthChart"></canvas>
+    <ChartContainer
+      title="Análise de Saúde e Bem-Estar"
+      icon="❤️"
+      footer="Expectativa de vida e problemas de saúde por raça"
+    >
+      <div style={{ height: '400px' }}>
+        <canvas ref={canvasRef}></canvas>
       </div>
-    </div>
+    </ChartContainer>
   );
 }
 

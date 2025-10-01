@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 import ChartContainer from '../UI/ChartContainer';
+import { useTheme } from '../../hooks/useTheme';
 
 /**
  * Gráfico de Top 10 Temperamentos mais Comuns
@@ -8,6 +9,7 @@ import ChartContainer from '../UI/ChartContainer';
 function TopTemperamentsChart({ breeds }) {
   const chartRef = useRef(null);
   const canvasRef = useRef(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Destruir gráfico anterior se existir
@@ -36,6 +38,8 @@ function TopTemperamentsChart({ breeds }) {
 
     const labels = sortedTemperaments.map(([trait]) => trait);
     const data = sortedTemperaments.map(([, count]) => count);
+
+    const isDark = theme === 'dark';
 
     const ctx = canvasRef.current.getContext('2d');
     const newChart = new Chart(ctx, {
@@ -71,14 +75,18 @@ function TopTemperamentsChart({ breeds }) {
           x: {
             beginAtZero: true,
             ticks: {
-              stepSize: 1
+              stepSize: 1,
+              color: isDark ? '#d1d5db' : '#374151'
             },
             grid: {
               display: true,
-              color: 'rgba(0, 0, 0, 0.05)'
+              color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
             }
           },
           y: {
+            ticks: {
+              color: isDark ? '#d1d5db' : '#374151'
+            },
             grid: {
               display: false
             }
@@ -96,7 +104,7 @@ function TopTemperamentsChart({ breeds }) {
         chartRef.current = null;
       }
     };
-  }, [breeds]);
+  }, [breeds, theme]);
 
   return (
     <ChartContainer

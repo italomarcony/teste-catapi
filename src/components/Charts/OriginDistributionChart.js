@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 import ChartContainer from '../UI/ChartContainer';
+import { useTheme } from '../../hooks/useTheme';
 
 /**
  * Gráfico de Distribuição de Raças por Origem (Pizza/Donut)
@@ -8,6 +9,7 @@ import ChartContainer from '../UI/ChartContainer';
 function OriginDistributionChart({ breeds }) {
   const chartRef = useRef(null);
   const canvasRef = useRef(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Destruir gráfico anterior se existir
@@ -47,6 +49,8 @@ function OriginDistributionChart({ breeds }) {
       '#14b8a6', // teal
     ];
 
+    const isDark = theme === 'dark';
+
     const ctx = canvasRef.current.getContext('2d');
     const newChart = new Chart(ctx, {
       type: 'doughnut',
@@ -57,7 +61,7 @@ function OriginDistributionChart({ breeds }) {
           data: data,
           backgroundColor: colors,
           borderWidth: 2,
-          borderColor: '#ffffff',
+          borderColor: isDark ? '#1f2937' : '#ffffff',
         }],
       },
       options: {
@@ -72,6 +76,7 @@ function OriginDistributionChart({ breeds }) {
               font: {
                 size: 12
               },
+              color: isDark ? '#d1d5db' : '#374151',
               generateLabels: function(chart) {
                 const data = chart.data;
                 const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
@@ -114,7 +119,7 @@ function OriginDistributionChart({ breeds }) {
         chartRef.current = null;
       }
     };
-  }, [breeds]);
+  }, [breeds, theme]);
 
   return (
     <ChartContainer

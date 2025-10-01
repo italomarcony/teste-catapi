@@ -1,63 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
+import ChartContainer from '../UI/ChartContainer';
+import { useTheme } from '../../hooks/useTheme';
 
-// Componente funcional EnergyExerciseLevelsChart para exibir gráficos de níveis de energia e exercício de raças de gatos
 function EnergyExerciseLevelsChart({ limit }) {
-  // Estado para armazenar os dados das raças de gatos e o gráfico
   const [catData, setCatData] = useState(null);
-  const [myChart, setMyChart] = useState(null);
+  const chartRef = useRef(null);
+  const canvasRef = useRef(null);
+  const { theme } = useTheme();
 
-  // Efeito para carregar os dados das raças de gatos da API ao montar o componente ou quando o limite é alterado
   useEffect(() => {
     fetch("https://api.thecatapi.com/v1/breeds")
       .then((response) => response.json())
       .then((data) => {
-        // Extrair os dados relevantes da resposta da API
         const labels = data.map((breed) => breed.name);
         const energyData = data.map((breed) => breed.energy_level);
 
-        // Classificar os níveis de energia em categorias: calmo, moderadamente ativo e ativo
         const energyCategories = energyData.map((energy) => {
           if (energy <= 2) return "Calmo";
           else if (energy <= 4) return "Moderadamente Ativo";
           else return "Ativo";
         });
 
-        // Cria um objeto para armazenar os nomes das raças para cada categoria
         const breedNames = {
           Calmo: [],
           "Moderadamente Ativo": [],
           Ativo: [],
         };
 
-        // Preencher o objeto com os nomes das raças correspondentes a cada categoria
         labels.forEach((breed, index) => {
           breedNames[energyCategories[index]].push(breed);
         });
 
-        // Limitar o número de raças de acordo com o limite especificado
         const limitedBreedNames = {
           Calmo: breedNames.Calmo.slice(0, limit),
-          "Moderadamente Ativo": breedNames["Moderadamente Ativo"].slice(
-            0,
-            limit
-          ),
+          "Moderadamente Ativo": breedNames["Moderadamente Ativo"].slice(0, limit),
           Ativo: breedNames.Ativo.slice(0, limit),
         };
 
-        // Atualizar o state com os dados extraídos
         setCatData(limitedBreedNames);
       })
       .catch((error) => console.error("Erro ao obter dados da API:", error));
   }, [limit]);
 
-  // Efeito para criar e atualizar o gráfico quando os dados das raças de gatos são carregados ou alterados
   useEffect(() => {
-    if (myChart) {
-      myChart.destroy();
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
     }
-    if (catData) {
-      const ctx = document.getElementById("myEnergyChart");
+
+    if (catData && canvasRef.current) {
+      const isDark = theme === 'dark';
+      const ctx = canvasRef.current.getContext('2d');
       const newChart = new Chart(ctx, {
         type: "bar",
         data: {
@@ -67,92 +61,136 @@ function EnergyExerciseLevelsChart({ limit }) {
               label: "Número de Raças",
               data: Object.values(catData).map((breeds) => breeds.length),
               backgroundColor: [
-                "rgba(75, 192, 192, 0.5)",
-                "rgba(255, 206, 86, 0.5)",
-                "rgba(255, 99, 132, 0.5)",
+                "rgba(75, 192, 192, 0.6)",
+                "rgba(255, 206, 86, 0.6)",
+                "rgba(255, 99, 132, 0.6)",
               ],
+              borderColor: [
+                "rgba(75, 192, 192, 1)",
+                "rgba(255, 206, 86, 1)",
+                "rgba(255, 99, 132, 1)",
+              ],
+              borderWidth: 2,
+              borderRadius: 8,
             },
           ],
         },
         options: {
+          responsive: true,
+          maintainAspectRatio: false,
           scales: {
             y: {
               beginAtZero: true,
+              ticks: {
+                color: isDark ? '#d1d5db' : '#374151',
+                stepSize: 5
+              },
               title: {
                 display: true,
                 text: "Número de Raças",
+                color: isDark ? '#d1d5db' : '#374151',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                }
               },
+              grid: {
+                color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
+              }
             },
             x: {
+              ticks: {
+                color: isDark ? '#d1d5db' : '#374151'
+              },
               title: {
                 display: true,
                 text: "Nível de Energia",
+                color: isDark ? '#d1d5db' : '#374151',
+                font: {
+                  size: 13,
+                  weight: 'bold'
+                }
               },
+              grid: {
+                display: false
+              }
             },
           },
           plugins: {
             legend: {
               display: false,
             },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `${context.parsed.y} raças`;
+                }
+              }
+            }
           },
         },
       });
-      setMyChart(newChart);
+      chartRef.current = newChart;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catData]);
 
-  // Renderiza o componente EnergyExerciseLevelsChart
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [catData, theme]);
+
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Níveis de Energia e Exercício</h2>
-
-      {/* Canvas para renderizar o gráfico */}
-      <div className="mb-8">
-        <canvas id="myEnergyChart"></canvas>
+    <ChartContainer
+      title="Níveis de Energia e Exercício"
+      icon="⚡"
+      footer="Classificação por nível de atividade"
+    >
+      <div style={{ height: '350px' }} className="mb-6">
+        <canvas ref={canvasRef}></canvas>
       </div>
 
-      {/* Lista de raças de gatos categorizadas por nível de energia */}
       {catData && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-green-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-green-800 mb-3 flex items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800 transition-colors">
+            <h3 className="text-lg font-semibold text-green-800 dark:text-green-400 mb-3 flex items-center">
               <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
               Raças Mais Calmas
             </h3>
             <ul className="space-y-1">
               {catData.Calmo.map((breed) => (
-                <li key={breed} className="text-sm text-gray-700 pl-5">• {breed}</li>
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-yellow-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800 transition-colors">
+            <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-400 mb-3 flex items-center">
               <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
               Raças Moderadamente Ativas
             </h3>
             <ul className="space-y-1">
               {catData["Moderadamente Ativo"].map((breed) => (
-                <li key={breed} className="text-sm text-gray-700 pl-5">• {breed}</li>
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
               ))}
             </ul>
           </div>
 
-          <div className="bg-red-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-red-800 mb-3 flex items-center">
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800 transition-colors">
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-3 flex items-center">
               <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
               Raças Mais Ativas
             </h3>
             <ul className="space-y-1">
               {catData.Ativo.map((breed) => (
-                <li key={breed} className="text-sm text-gray-700 pl-5">• {breed}</li>
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
               ))}
             </ul>
           </div>
         </div>
       )}
-    </div>
+    </ChartContainer>
   );
 }
 

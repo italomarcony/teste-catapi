@@ -29,20 +29,20 @@ function StatsCard({
   };
 
   const getTrendColor = () => {
-    if (trend === 'up') return 'text-green-600';
-    if (trend === 'down') return 'text-red-600';
-    return 'text-gray-600';
+    if (trend === 'up') return 'text-green-600 dark:text-green-400';
+    if (trend === 'down') return 'text-red-600 dark:text-red-400';
+    return 'text-gray-600 dark:text-gray-400';
   };
 
   return (
-    <div className={`${bgColor} rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}>
+    <div className={`${bgColor} dark:bg-gray-800 rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-gray-100 dark:border-gray-700`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-2">{title}</p>
-          <p className={`text-3xl font-bold ${textColor} mb-1`}>{value}</p>
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{title}</p>
+          <p className={`text-3xl font-bold ${textColor} dark:text-primary-400 mb-1`}>{value}</p>
 
           {description && (
-            <p className="text-xs text-gray-500 mt-2">{description}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{description}</p>
           )}
 
           {trendValue && (
@@ -53,7 +53,7 @@ function StatsCard({
           )}
         </div>
 
-        <div className={`${iconBgColor} rounded-full p-3 ${textColor}`}>
+        <div className={`${iconBgColor} dark:bg-gray-700 rounded-full p-3 ${textColor} dark:text-primary-400`}>
           <span className="text-3xl">{icon}</span>
         </div>
       </div>

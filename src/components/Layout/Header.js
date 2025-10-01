@@ -1,10 +1,13 @@
 import React from 'react';
+import ThemeToggle from '../UI/ThemeToggle';
 
 function Header() {
   return (
-    <header className="bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg">
+    <header className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-gray-800 dark:to-gray-900 text-white shadow-lg transition-colors">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex-1" />
+          <div className="flex items-center justify-center gap-3">
           <svg
             className="w-10 h-10"
             fill="currentColor"
@@ -14,7 +17,11 @@ function Header() {
           </svg>
           <h1 className="text-4xl font-bold">Raças de Gatos</h1>
         </div>
-        <p className="text-center text-primary-100 mt-2">
+        <div className="flex-1 flex justify-end">
+          <ThemeToggle />
+        </div>
+        </div>
+        <p className="text-center text-primary-100 dark:text-gray-300 mt-2">
           Explore e descubra as características de diversas raças de gatos
         </p>
       </div>
