@@ -4,11 +4,14 @@ import ImageGallery from '../UI/ImageGallery';
 import ShareButtons from '../UI/ShareButtons';
 import BreedRadarChart from '../Charts/BreedRadarChart';
 import { fetchBreedImages } from '../../services/catApi';
+import { useLanguage } from '../../hooks/useLanguage';
+import { getBreedDescription } from '../../utils/breedTranslations';
 
 /**
  * BreedDetailModal - Modal com detalhes completos da raça
  */
 function BreedDetailModal({ breed, isOpen, onClose, onNavigate, canNavigatePrev, canNavigateNext }) {
+  const { language } = useLanguage();
   const [images, setImages] = useState([]);
   const [loadingImages, setLoadingImages] = useState(true);
 
@@ -118,7 +121,7 @@ function BreedDetailModal({ breed, isOpen, onClose, onNavigate, canNavigatePrev,
             {/* Descrição */}
             <div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Sobre esta raça</h3>
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{breed.description}</p>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">{getBreedDescription(breed.name, breed.description, language)}</p>
             </div>
 
             {/* Temperamento */}

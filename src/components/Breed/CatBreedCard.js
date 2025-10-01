@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../hooks/useLanguage';
+import { getBreedDescription } from '../../utils/breedTranslations';
 
-function CatBreedCard({ breed, onClick }) {
+function CatBreedCard({ breed, onClick}) {
+  const { language } = useLanguage();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -55,7 +58,7 @@ function CatBreedCard({ breed, onClick }) {
         </p>
 
         <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3 flex-1">
-          {breed.description}
+          {getBreedDescription(breed.name, breed.description, language)}
         </p>
 
         {/* Tags de Temperamento */}

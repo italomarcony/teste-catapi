@@ -3,8 +3,14 @@ import Chart from "chart.js/auto";
 import ChartContainer from '../UI/ChartContainer';
 import { useTheme } from '../../hooks/useTheme';
 
-function TemperamentAndSocialNeedsChart({ limit }) {
+function TemperamentAndSocialNeedsChart() {
   const [catData, setCatData] = useState(null);
+  const [showAll, setShowAll] = useState({
+    "Alta Atividade": false,
+    "Alta Inteligência": false,
+    "Alta Sociabilidade": false,
+    "Alta Vocalização": false
+  });
   const chartRef = useRef(null);
   const canvasRef = useRef(null);
   const { theme } = useTheme();
@@ -19,52 +25,32 @@ function TemperamentAndSocialNeedsChart({ limit }) {
         const sociabilityData = data.map((breed) => breed.social_needs);
         const vocalizationData = data.map((breed) => breed.vocalisation);
 
-        const limitedLabels = labels.slice(0, limit);
-        const limitedActivityData = activityData.slice(0, limit);
-        const limitedIntelligenceData = intelligenceData.slice(0, limit);
-        const limitedSociabilityData = sociabilityData.slice(0, limit);
-        const limitedVocalizationData = vocalizationData.slice(0, limit);
+        // Categorizar raças por características
+        const categories = {
+          "Alta Atividade": [],
+          "Alta Inteligência": [],
+          "Alta Sociabilidade": [],
+          "Alta Vocalização": []
+        };
+
+        labels.forEach((breed, index) => {
+          if (activityData[index] >= 4) categories["Alta Atividade"].push(breed);
+          if (intelligenceData[index] >= 4) categories["Alta Inteligência"].push(breed);
+          if (sociabilityData[index] >= 4) categories["Alta Sociabilidade"].push(breed);
+          if (vocalizationData[index] >= 4) categories["Alta Vocalização"].push(breed);
+        });
 
         setCatData({
-          labels: limitedLabels,
-          datasets: [
-            {
-              label: "Atividade",
-              data: limitedActivityData,
-              backgroundColor: "rgba(255, 99, 132, 0.6)",
-              borderColor: "rgba(255, 99, 132, 1)",
-              borderWidth: 2,
-              borderRadius: 8,
-            },
-            {
-              label: "Inteligência",
-              data: limitedIntelligenceData,
-              backgroundColor: "rgba(255, 206, 86, 0.6)",
-              borderColor: "rgba(255, 206, 86, 1)",
-              borderWidth: 2,
-              borderRadius: 8,
-            },
-            {
-              label: "Sociabilidade",
-              data: limitedSociabilityData,
-              backgroundColor: "rgba(75, 192, 192, 0.6)",
-              borderColor: "rgba(75, 192, 192, 1)",
-              borderWidth: 2,
-              borderRadius: 8,
-            },
-            {
-              label: "Nível de Vocalização",
-              data: limitedVocalizationData,
-              backgroundColor: "rgba(255, 159, 64, 0.6)",
-              borderColor: "rgba(255, 159, 64, 1)",
-              borderWidth: 2,
-              borderRadius: 8,
-            },
-          ],
+          labels: labels,
+          activityData: activityData,
+          intelligenceData: intelligenceData,
+          sociabilityData: sociabilityData,
+          vocalizationData: vocalizationData,
+          categories: categories
         });
       })
       .catch((error) => console.error("Erro ao obter dados da API:", error));
-  }, [limit]);
+  }, []);
 
   useEffect(() => {
     if (chartRef.current) {
@@ -77,7 +63,29 @@ function TemperamentAndSocialNeedsChart({ limit }) {
       const ctx = canvasRef.current.getContext('2d');
       const newChart = new Chart(ctx, {
         type: "bar",
-        data: catData,
+        data: {
+          labels: Object.keys(catData.categories),
+          datasets: [
+            {
+              label: "Número de Raças",
+              data: Object.values(catData.categories).map((breeds) => breeds.length),
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.6)",
+                "rgba(255, 206, 86, 0.6)",
+                "rgba(75, 192, 192, 0.6)",
+                "rgba(255, 159, 64, 0.6)",
+              ],
+              borderColor: [
+                "rgba(255, 99, 132, 1)",
+                "rgba(255, 206, 86, 1)",
+                "rgba(75, 192, 192, 1)",
+                "rgba(255, 159, 64, 1)",
+              ],
+              borderWidth: 2,
+              borderRadius: 8,
+            },
+          ],
+        },
         options: {
           responsive: true,
           maintainAspectRatio: false,
@@ -85,13 +93,12 @@ function TemperamentAndSocialNeedsChart({ limit }) {
             y: {
               beginAtZero: true,
               ticks: {
-                stepSize: 1,
-                max: 5,
+                stepSize: 5,
                 color: isDark ? '#d1d5db' : '#374151',
               },
               title: {
                 display: true,
-                text: "Nível",
+                text: "Número de Raças",
                 color: isDark ? '#d1d5db' : '#374151',
                 font: {
                   size: 13,
@@ -108,7 +115,7 @@ function TemperamentAndSocialNeedsChart({ limit }) {
               },
               title: {
                 display: true,
-                text: "Raças de Gatos",
+                text: "Características",
                 color: isDark ? '#d1d5db' : '#374151',
                 font: {
                   size: 13,
@@ -122,18 +129,14 @@ function TemperamentAndSocialNeedsChart({ limit }) {
           },
           plugins: {
             legend: {
-              display: true,
-              position: "top",
-              labels: {
-                color: isDark ? '#d1d5db' : '#374151',
-              }
+              display: false,
             },
             tooltip: {
-              backgroundColor: isDark ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-              titleColor: isDark ? '#f3f4f6' : '#1f2937',
-              bodyColor: isDark ? '#d1d5db' : '#374151',
-              borderColor: isDark ? '#4b5563' : '#e5e7eb',
-              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  return `${context.parsed.y} raças`;
+                }
+              }
             }
           },
         },
@@ -155,9 +158,109 @@ function TemperamentAndSocialNeedsChart({ limit }) {
       icon="🧠"
       footer="Análise de personalidade e características sociais"
     >
-      <div style={{ height: '400px' }}>
+      <div style={{ height: '350px' }} className="mb-6">
         <canvas ref={canvasRef}></canvas>
       </div>
+
+      {catData && catData.categories && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+          {/* Alta Atividade */}
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800 transition-colors">
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2 flex items-center justify-between">
+              <span className="flex items-center">
+                <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                Alta Atividade
+              </span>
+              <span className="text-sm font-normal">({catData.categories["Alta Atividade"].length})</span>
+            </h3>
+            <ul className="space-y-1 max-h-64 overflow-y-auto">
+              {(showAll["Alta Atividade"] ? catData.categories["Alta Atividade"] : catData.categories["Alta Atividade"].slice(0, 5)).map((breed) => (
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
+              ))}
+            </ul>
+            {catData.categories["Alta Atividade"].length > 5 && (
+              <button
+                onClick={() => setShowAll(prev => ({ ...prev, "Alta Atividade": !prev["Alta Atividade"] }))}
+                className="mt-3 text-sm text-red-700 dark:text-red-400 hover:underline font-medium"
+              >
+                {showAll["Alta Atividade"] ? '▲ Ver menos' : `▼ Ver todas (${catData.categories["Alta Atividade"].length})`}
+              </button>
+            )}
+          </div>
+
+          {/* Alta Inteligência */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800 transition-colors">
+            <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-400 mb-2 flex items-center justify-between">
+              <span className="flex items-center">
+                <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                Alta Inteligência
+              </span>
+              <span className="text-sm font-normal">({catData.categories["Alta Inteligência"].length})</span>
+            </h3>
+            <ul className="space-y-1 max-h-64 overflow-y-auto">
+              {(showAll["Alta Inteligência"] ? catData.categories["Alta Inteligência"] : catData.categories["Alta Inteligência"].slice(0, 5)).map((breed) => (
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
+              ))}
+            </ul>
+            {catData.categories["Alta Inteligência"].length > 5 && (
+              <button
+                onClick={() => setShowAll(prev => ({ ...prev, "Alta Inteligência": !prev["Alta Inteligência"] }))}
+                className="mt-3 text-sm text-yellow-700 dark:text-yellow-400 hover:underline font-medium"
+              >
+                {showAll["Alta Inteligência"] ? '▲ Ver menos' : `▼ Ver todas (${catData.categories["Alta Inteligência"].length})`}
+              </button>
+            )}
+          </div>
+
+          {/* Alta Sociabilidade */}
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800 transition-colors">
+            <h3 className="text-lg font-semibold text-green-800 dark:text-green-400 mb-2 flex items-center justify-between">
+              <span className="flex items-center">
+                <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                Alta Sociabilidade
+              </span>
+              <span className="text-sm font-normal">({catData.categories["Alta Sociabilidade"].length})</span>
+            </h3>
+            <ul className="space-y-1 max-h-64 overflow-y-auto">
+              {(showAll["Alta Sociabilidade"] ? catData.categories["Alta Sociabilidade"] : catData.categories["Alta Sociabilidade"].slice(0, 5)).map((breed) => (
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
+              ))}
+            </ul>
+            {catData.categories["Alta Sociabilidade"].length > 5 && (
+              <button
+                onClick={() => setShowAll(prev => ({ ...prev, "Alta Sociabilidade": !prev["Alta Sociabilidade"] }))}
+                className="mt-3 text-sm text-green-700 dark:text-green-400 hover:underline font-medium"
+              >
+                {showAll["Alta Sociabilidade"] ? '▲ Ver menos' : `▼ Ver todas (${catData.categories["Alta Sociabilidade"].length})`}
+              </button>
+            )}
+          </div>
+
+          {/* Alta Vocalização */}
+          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800 transition-colors">
+            <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-400 mb-2 flex items-center justify-between">
+              <span className="flex items-center">
+                <span className="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+                Alta Vocalização
+              </span>
+              <span className="text-sm font-normal">({catData.categories["Alta Vocalização"].length})</span>
+            </h3>
+            <ul className="space-y-1 max-h-64 overflow-y-auto">
+              {(showAll["Alta Vocalização"] ? catData.categories["Alta Vocalização"] : catData.categories["Alta Vocalização"].slice(0, 5)).map((breed) => (
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
+              ))}
+            </ul>
+            {catData.categories["Alta Vocalização"].length > 5 && (
+              <button
+                onClick={() => setShowAll(prev => ({ ...prev, "Alta Vocalização": !prev["Alta Vocalização"] }))}
+                className="mt-3 text-sm text-orange-700 dark:text-orange-400 hover:underline font-medium"
+              >
+                {showAll["Alta Vocalização"] ? '▲ Ver menos' : `▼ Ver todas (${catData.categories["Alta Vocalização"].length})`}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </ChartContainer>
   );
 }

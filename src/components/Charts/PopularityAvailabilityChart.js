@@ -3,59 +3,52 @@ import Chart from "chart.js/auto";
 import ChartContainer from '../UI/ChartContainer';
 import { useTheme } from '../../hooks/useTheme';
 
-function PopularityAvailabilityChart({ limit }) {
+function PopularityAvailabilityChart() {
   const [catData, setCatData] = useState(null);
+  const [showAll, setShowAll] = useState({
+    "Muito Populares": false,
+    "Populares": false,
+    "Raras": false
+  });
   const chartRef = useRef(null);
   const canvasRef = useRef(null);
   const { theme } = useTheme();
 
   useEffect(() => {
-    const breedData = [
-      {
-        name: "Abyssinian",
-        popularityWeb: "Média",
-        popularityComparison: "Menor volume em comparação com Persa",
-        registrations: "33ª posição em registros da TICA (2.423 gatos)",
-        comparisonRegistrations: "Persa ocupou a 1ª posição (35.643 gatos)",
-        rankerPosition: "14ª posição em ranking de popularidade",
-        catster: "Relativamente rara",
-      },
-      {
-        name: "Aegean",
-        popularityWeb: "Baixa",
-        popularityComparison: "Menor volume em comparação com Abissínio",
-        registrations:
-          "Não figurou entre as 50 raças com mais registros da TICA",
-        comparisonRegistrations: "Abissínio ocupou a 33ª posição",
-        rankerPosition: "Não está presente no ranking de popularidade",
-        catster: "Rara",
-      },
-    ];
+    fetch("https://api.thecatapi.com/v1/breeds")
+      .then((response) => response.json())
+      .then((data) => {
+        const labels = data.map((breed) => breed.name);
 
-    const labels = breedData.map((breed) => breed.name);
-    const rarityData = breedData.map((breed) =>
-      breed.catster === "Rara" ? 1 : 0
-    );
+        // Categorizar raças por raridade baseado em múltiplos fatores
+        const categories = {
+          "Muito Populares": [],
+          "Populares": [],
+          "Raras": []
+        };
 
-    setCatData({
-      labels: labels,
-      datasets: [
-        {
-          label: "Raridade",
-          data: rarityData,
-          backgroundColor: rarityData.map((rarity) =>
-            rarity === 1 ? "rgba(54, 162, 235, 0.6)" : "rgba(255, 99, 132, 0.6)"
-          ),
-          borderColor: rarityData.map((rarity) =>
-            rarity === 1 ? "rgba(54, 162, 235, 1)" : "rgba(255, 99, 132, 1)"
-          ),
-          borderWidth: 2,
-          borderRadius: 8,
-        },
-      ],
-      breedInfo: breedData,
-    });
-  }, [limit]);
+        labels.forEach((breed, index) => {
+          const breedData = data[index];
+          // Raças raras geralmente têm baixa adaptabilidade ou são mais exigentes
+          const rarityScore = (breedData.rare || 0) +
+                             (5 - (breedData.adaptability || 3));
+
+          if (rarityScore >= 4) {
+            categories["Raras"].push(breed);
+          } else if (rarityScore >= 2) {
+            categories["Populares"].push(breed);
+          } else {
+            categories["Muito Populares"].push(breed);
+          }
+        });
+
+        setCatData({
+          categories: categories,
+          totalBreeds: data.length
+        });
+      })
+      .catch((error) => console.error("Erro ao obter dados da API:", error));
+  }, []);
 
   useEffect(() => {
     if (chartRef.current) {
@@ -68,7 +61,27 @@ function PopularityAvailabilityChart({ limit }) {
       const ctx = canvasRef.current.getContext('2d');
       const newChart = new Chart(ctx, {
         type: "bar",
-        data: catData,
+        data: {
+          labels: Object.keys(catData.categories),
+          datasets: [
+            {
+              label: "Número de Raças",
+              data: Object.values(catData.categories).map((breeds) => breeds.length),
+              backgroundColor: [
+                "rgba(34, 197, 94, 0.6)",
+                "rgba(234, 179, 8, 0.6)",
+                "rgba(239, 68, 68, 0.6)",
+              ],
+              borderColor: [
+                "rgba(34, 197, 94, 1)",
+                "rgba(234, 179, 8, 1)",
+                "rgba(239, 68, 68, 1)",
+              ],
+              borderWidth: 2,
+              borderRadius: 8,
+            },
+          ],
+        },
         options: {
           responsive: true,
           maintainAspectRatio: false,
@@ -76,12 +89,12 @@ function PopularityAvailabilityChart({ limit }) {
             y: {
               beginAtZero: true,
               ticks: {
-                stepSize: 1,
+                stepSize: 5,
                 color: isDark ? '#d1d5db' : '#374151',
               },
               title: {
                 display: true,
-                text: "Nível de Raridade",
+                text: "Número de Raças",
                 color: isDark ? '#d1d5db' : '#374151',
                 font: {
                   size: 13,
@@ -98,7 +111,7 @@ function PopularityAvailabilityChart({ limit }) {
               },
               title: {
                 display: true,
-                text: "Raças de Gatos",
+                text: "Nível de Popularidade",
                 color: isDark ? '#d1d5db' : '#374151',
                 font: {
                   size: 13,
@@ -112,32 +125,14 @@ function PopularityAvailabilityChart({ limit }) {
           },
           plugins: {
             legend: {
-              display: true,
-              position: "top",
-              labels: {
-                color: isDark ? '#d1d5db' : '#374151',
-                filter: function (item) {
-                  return item.datasetIndex === 0;
-                },
-                generateLabels: function (chart) {
-                  return [
-                    {
-                      text: "Barras mais altas representam raças mais raras",
-                      fillStyle: "rgba(54, 162, 235, 0.6)",
-                      font: {
-                        size: 14,
-                      },
-                    },
-                  ];
-                },
-              },
+              display: false,
             },
             tooltip: {
-              backgroundColor: isDark ? 'rgba(31, 41, 55, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-              titleColor: isDark ? '#f3f4f6' : '#1f2937',
-              bodyColor: isDark ? '#d1d5db' : '#374151',
-              borderColor: isDark ? '#4b5563' : '#e5e7eb',
-              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  return `${context.parsed.y} raças`;
+                }
+              }
             }
           },
         },
@@ -163,23 +158,78 @@ function PopularityAvailabilityChart({ limit }) {
         <canvas ref={canvasRef}></canvas>
       </div>
 
-      {catData && catData.breedInfo && (
-        <div className="space-y-4 mt-6">
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Informações sobre as Raças:</h3>
-          <div className="space-y-6">
-            {catData.breedInfo.map((breed) => (
-              <div key={breed.name} className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700 transition-colors">
-                <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">{breed.name}</h4>
-                <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
-                  <li><strong>Popularidade na Web:</strong> {breed.popularityWeb}</li>
-                  <li><strong>Comparação com outras raças:</strong> {breed.popularityComparison}</li>
-                  <li><strong>Inscrições em clubes de raças:</strong> {breed.registrations}</li>
-                  <li><strong>Comparação com outras raças:</strong> {breed.comparisonRegistrations}</li>
-                  <li><strong>Posição no ranking Ranker:</strong> {breed.rankerPosition}</li>
-                  <li><strong>Catster:</strong> {breed.catster}</li>
-                </ul>
-              </div>
-            ))}
+      {catData && catData.categories && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          {/* Muito Populares */}
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800 transition-colors">
+            <h3 className="text-lg font-semibold text-green-800 dark:text-green-400 mb-2 flex items-center justify-between">
+              <span className="flex items-center">
+                <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                Muito Populares
+              </span>
+              <span className="text-sm font-normal">({catData.categories["Muito Populares"].length})</span>
+            </h3>
+            <ul className="space-y-1 max-h-64 overflow-y-auto">
+              {(showAll["Muito Populares"] ? catData.categories["Muito Populares"] : catData.categories["Muito Populares"].slice(0, 5)).map((breed) => (
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
+              ))}
+            </ul>
+            {catData.categories["Muito Populares"].length > 5 && (
+              <button
+                onClick={() => setShowAll(prev => ({ ...prev, "Muito Populares": !prev["Muito Populares"] }))}
+                className="mt-3 text-sm text-green-700 dark:text-green-400 hover:underline font-medium"
+              >
+                {showAll["Muito Populares"] ? '▲ Ver menos' : `▼ Ver todas (${catData.categories["Muito Populares"].length})`}
+              </button>
+            )}
+          </div>
+
+          {/* Populares */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800 transition-colors">
+            <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-400 mb-2 flex items-center justify-between">
+              <span className="flex items-center">
+                <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                Populares
+              </span>
+              <span className="text-sm font-normal">({catData.categories["Populares"].length})</span>
+            </h3>
+            <ul className="space-y-1 max-h-64 overflow-y-auto">
+              {(showAll["Populares"] ? catData.categories["Populares"] : catData.categories["Populares"].slice(0, 5)).map((breed) => (
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
+              ))}
+            </ul>
+            {catData.categories["Populares"].length > 5 && (
+              <button
+                onClick={() => setShowAll(prev => ({ ...prev, "Populares": !prev["Populares"] }))}
+                className="mt-3 text-sm text-yellow-700 dark:text-yellow-400 hover:underline font-medium"
+              >
+                {showAll["Populares"] ? '▲ Ver menos' : `▼ Ver todas (${catData.categories["Populares"].length})`}
+              </button>
+            )}
+          </div>
+
+          {/* Raras */}
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-800 transition-colors">
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-400 mb-2 flex items-center justify-between">
+              <span className="flex items-center">
+                <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                Raças Raras
+              </span>
+              <span className="text-sm font-normal">({catData.categories["Raras"].length})</span>
+            </h3>
+            <ul className="space-y-1 max-h-64 overflow-y-auto">
+              {(showAll["Raras"] ? catData.categories["Raras"] : catData.categories["Raras"].slice(0, 5)).map((breed) => (
+                <li key={breed} className="text-sm text-gray-700 dark:text-gray-300 pl-5">• {breed}</li>
+              ))}
+            </ul>
+            {catData.categories["Raras"].length > 5 && (
+              <button
+                onClick={() => setShowAll(prev => ({ ...prev, "Raras": !prev["Raras"] }))}
+                className="mt-3 text-sm text-red-700 dark:text-red-400 hover:underline font-medium"
+              >
+                {showAll["Raras"] ? '▲ Ver menos' : `▼ Ver todas (${catData.categories["Raras"].length})`}
+              </button>
+            )}
           </div>
         </div>
       )}

@@ -1,28 +1,31 @@
 import React from 'react';
-import ThemeToggle from '../UI/ThemeToggle';
+import LanguageToggle from '../UI/LanguageToggle';
 
 function Header() {
   return (
-    <header className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-gray-800 dark:to-gray-900 text-white shadow-lg transition-colors">
+    <header className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-gray-800 dark:to-gray-900 text-white shadow-lg transition-colors relative">
+      <LanguageToggle />
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between">
-          <div className="flex-1" />
-          <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-3">
           <svg
             className="w-10 h-10"
-            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5c.56.56 1.45.56 2.01 0L12 14.01l3.49 3.49c.56.56 1.45.56 2.01 0s.56-1.45 0-2.01L14.01 12l3.49-3.49c.56-.56.56-1.45 0-2.01s-1.45-.56-2.01 0L12 9.99 8.51 6.5c-.56-.56-1.45-.56-2.01 0s-.56 1.45 0 2.01L9.99 12l-3.49 3.49c-.56.56-.56 1.45 0 2.01z" />
+            <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z" />
+            <path d="M8 14v.5" />
+            <path d="M16 14v.5" />
+            <path d="M11.25 16.25h1.5L12 17l-.75-.75Z" />
           </svg>
-          <h1 className="text-4xl font-bold">Raças de Gatos</h1>
-        </div>
-        <div className="flex-1 flex justify-end">
-          <ThemeToggle />
-        </div>
+          <h1 className="text-4xl font-bold">MiauPédia</h1>
         </div>
         <p className="text-center text-primary-100 dark:text-gray-300 mt-2">
-          Explore e descubra as características de diversas raças de gatos
+          Sua enciclopédia completa sobre raças de gatos
         </p>
       </div>
     </header>
